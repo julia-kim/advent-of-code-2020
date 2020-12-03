@@ -1,6 +1,8 @@
 package days.day03;
 
-import java.io.*;
+import days.Day;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
@@ -57,23 +59,9 @@ public class Day03 {
     }
 
     public static void main(String[] args) throws IOException {
-        InputStream input = Day03.class.getClassLoader().getResourceAsStream("day03.txt");
-        BufferedReader in = new BufferedReader(new InputStreamReader(input));
-        try {
-            ArrayList<String> arrList = new ArrayList<>();
-            String line;
-
-            while ((line = in.readLine()) != null) {
-                String st = line;
-                arrList.add(st);
-            }
-            String[] arr = arrList.toArray(new String[arrList.size()]);
-
-            Day03 day03 = new Day03();
-            System.out.println(day03.part01(arr, 3, 1));
-            System.out.println(day03.part02(arr));
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        String[] input = Day.loadInput("day03");
+        Day03 day03 = new Day03();
+        System.out.println(day03.part01(input, 3, 1));
+        System.out.println(day03.part02(input));
     }
 }
