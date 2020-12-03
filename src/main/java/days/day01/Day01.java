@@ -2,10 +2,13 @@ package days.day01;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Day01 {
 
     public int part01(int[] r) {
+/*      BRUTE FORCE SOLUTION
+       **********************
         int answer = 0;
         int sum = 0;
 
@@ -18,6 +21,23 @@ public class Day01 {
             }
         }
         return answer;
+*/
+
+        HashMap<Integer, Character> hm = new HashMap<>();
+        int ans = 0;
+
+        for (int i : r) {
+            hm.put(i, 'c');
+        }
+
+        for (int i : r) {
+            int diff = 2020 - i;
+            if (hm.containsKey(diff)) {
+                ans = i * diff;
+            }
+        }
+
+        return ans;
     }
 
     public int part02(int[] r) {
