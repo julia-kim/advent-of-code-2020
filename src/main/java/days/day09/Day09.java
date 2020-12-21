@@ -49,7 +49,6 @@ public class Day09 {
         for (int i = 0; i < data.length; i++) {
             sum += data[i];
             if (sumIndexMap.containsKey(sum - invalidNumber)) {
-                System.out.println(sumIndexMap.get(sum - invalidNumber));
                 long[] subArray = Arrays.copyOfRange(data, sumIndexMap.get(sum - invalidNumber) + 1, i);
                 long min = Arrays.stream(subArray).min().getAsLong();
                 long max = Arrays.stream(subArray).max().getAsLong();
