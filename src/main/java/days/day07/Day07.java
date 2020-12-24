@@ -3,7 +3,10 @@ package days.day07;
 import days.Day;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class Day07 {
     private Graph graph;
@@ -42,6 +45,30 @@ public class Day07 {
         return foundBags;
     }
 
+    public int part02() {
+        Graph g = this.graph;
+        String target = "shiny gold";
+        Map<Bag, Integer> visited = new LinkedHashMap<>();
+
+        containsBag(g, target, visited);
+        System.out.println(visited);
+        int bagCount = visited.get(g.getBag(target));
+        for (Bag bag : visited.keySet()) {
+            for (String innerBag : bag.getContents().keySet()) {
+                Bag inner = g.getBag(innerBag);
+                if (visited.get(inner) != 0) {
+                    bagCount += bag.getContents().get(innerBag) * calculateBags(g, visited, bag, visited.get(inner));
+                    System.out.println(innerBag + " " + bag.getContents().get(innerBag) + " * " + calculateBags(g,
+                            visited,
+                            bag,
+                            visited.get(inner)));
+                }
+            }
+        }
+
+        return bagCount;
+    }
+
     private boolean search(Graph g, String color, String target) {
         for (String innerBagColor : g.getBag(color).getContents().keySet()) {
             if (innerBagColor.equals(target)) {
@@ -54,10 +81,35 @@ public class Day07 {
         return false;
     }
 
+    private void containsBag(Graph g, String target, Map<Bag, Integer> visited) {
+        for (Bag bag : g.getBags()) {
+            int totalInnerBags = 0;
+            if (bag.getColor().equals(target) && !visited.containsKey(bag)) {
+                for (int i : bag.getContents().values()) {
+                    totalInnerBags += i;
+                }
+                visited.put(bag, totalInnerBags);
+                for (String innerBag : bag.getContents().keySet()) {
+                    containsBag(g, innerBag, visited);
+                }
+            }
+        }
+    }
+
+    private int calculateBags(Graph g, Map<Bag, Integer> visited, Bag bag, int i) {
+        for (String innerBag : bag.getContents().keySet()) {
+            Bag inner = g.getBag(innerBag);
+            if (visited.get(inner) != 0) {
+                return i * calculateBags(g, visited, inner, visited.get(inner));
+            }
+        }
+        return 1;
+    }
+
     public static void main(String[] args) throws IOException {
         String[] input = Day.loadInput("day07");
         Day07 day07 = new Day07(input);
         System.out.println(day07.part01());
-        // System.out.println(day07.part02());
+        System.out.println(day07.part02());
     }
 }
