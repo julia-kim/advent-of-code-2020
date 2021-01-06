@@ -3,7 +3,6 @@ package days.day12;
 import days.Day;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 public class Day12 {
     public int part01(String[] input) {
