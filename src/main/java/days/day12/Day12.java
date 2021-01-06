@@ -3,6 +3,7 @@ package days.day12;
 import days.Day;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 public class Day12 {
     public int part01(String[] input) {
@@ -45,10 +46,49 @@ public class Day12 {
         return manhattanDistance;
     }
 
+    public int part02(String[] input) {
+        Waypoint wp = new Waypoint(10, 1); // the waypoint starts 10 units east and 1 unit north relative to the ship
+        int[] shipCoords = {0, 0};
+        int manhattanDistance;
+
+        for (String action : input) {
+            String[] st = action.split("(?<=^\\D)");
+            String move = st[0];
+            int units = Integer.parseInt(st[1]);
+
+            switch (move) {
+                case "F":
+                    // move the ship towards waypoint n times
+                    shipCoords[0] += (wp.getX() * units);
+                    shipCoords[1] += (wp.getY() * units);
+                    break;
+                case "N":
+                    wp.moveWaypoint(0, units);
+                    break;
+                case "S":
+                    wp.moveWaypoint(0, -units);
+                    break;
+                case "E":
+                    wp.moveWaypoint(units, 0);
+                    break;
+                case "W":
+                    wp.moveWaypoint(-units, 0);
+                    break;
+                case "L":
+                case "R":
+                    wp.rotateWaypoint(move, units);
+                    break;
+            }
+        }
+
+        manhattanDistance = Math.abs(shipCoords[0]) + Math.abs(shipCoords[1]);
+        return manhattanDistance;
+    }
+
     public static void main(String[] args) throws IOException {
         String[] input = Day.loadInput("day12");
         Day12 day12 = new Day12();
         System.out.println(day12.part01(input));
-        // System.out.println(day12.part02());
+        System.out.println(day12.part02(input));
     }
 }
