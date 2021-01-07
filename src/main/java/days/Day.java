@@ -22,8 +22,4 @@ public class Day {
             throw new UncheckedIOException(e);
         }
     }
-
-    public static void main(String[] args) {
-
-    }
 }
