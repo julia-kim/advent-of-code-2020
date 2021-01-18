@@ -4,7 +4,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 public class Day16Tests {
-    Day16 day16 = new Day16();
+    Day16 day16;
     String[] input;
 
     @Test
@@ -22,6 +22,7 @@ public class Day16Tests {
                 "40,4,50",
                 "55,2,20",
                 "38,6,12"};
-        assertEquals(71, day16.part01(input));
+        day16 = new Day16(input);
+        assertEquals(71, day16.part01());
     }
 }
