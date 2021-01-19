@@ -2,58 +2,32 @@ package days.day22;
 
 import days.Day;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Set;
 
 public class Day22 {
+    enum Player {P1, P2}
+
     public long part01(String[] input) {
-        long winningScore = 0;
-        LinkedList<Integer> player01 = new LinkedList<>();
-        LinkedList<Integer> player02 = new LinkedList<>();
-        initGame(input, player01, player02);
+        LinkedList<Integer> p1 = new LinkedList<>();
+        LinkedList<Integer> p2 = new LinkedList<>();
+        initGame(input, p1, p2);
 
-        while (!(player01.size() == 0 || player02.size() == 0)) {
-            playRound(player01, player02);
+        while (!(p1.isEmpty() || p2.isEmpty())) {
+            playRound(p1, p2);
         }
 
-        LinkedList<Integer> winner;
-        if (!(player01.size() == 0)) {
-            winner = player01;
-        } else {
-            winner = player02;
-        }
-
-        int totalCards = winner.size();
-        for (int i = 1; i <= totalCards; i++) {
-            winningScore += i * winner.removeLast();
-        }
-
-        return winningScore;
+        LinkedList<Integer> winner = p1.size() > 0 ? p1 : p2;
+        return calculateScore(winner);
     }
 
     public long part02(String[] input) {
-        long winningScore = 0;
-        LinkedList<Integer> player01 = new LinkedList<>();
-        LinkedList<Integer> player02 = new LinkedList<>();
-        initGame(input, player01, player02);
-        Map<String, List<LinkedList<Integer>>> history = new HashMap<>();
-
-        history.put("p1", new ArrayList<>());
-        history.put("p2", new ArrayList<>());
-
-        String playTillWin = playRecursiveRound(player01, player02, history);
-        LinkedList<Integer> winner;
-        if (playTillWin.equals("p1")) {
-            winner = player01;
-        } else {
-            winner = player02;
-        }
-
-        int totalCards = winner.size();
-        for (int i = 1; i <= totalCards; i++) {
-            winningScore += i * winner.removeLast();
-        }
-
-        return winningScore;
+        LinkedList<Integer> p1 = new LinkedList<>();
+        LinkedList<Integer> p2 = new LinkedList<>();
+        Set<LinkedList<Integer>> playedGames = new HashSet<>();
+        initGame(input, p1, p2);
+        return calculateScore(playRecursiveCombat(p1, p2, playedGames) == Player.P1 ? p1 : p2);
     }
 
     public void initGame(String[] input, LinkedList<Integer> p1, LinkedList<Integer> p2) {
@@ -76,73 +50,69 @@ public class Day22 {
 
     public void playRound(LinkedList<Integer> p1, LinkedList<Integer> p2) {
         if (p1.getFirst() > p2.getFirst()) {
-            p1.add(p1.removeFirst());
-            p1.add(p2.removeFirst());
+            collectCards(p1, p2);
         } else {
-            p2.add(p2.removeFirst());
-            p2.add(p1.removeFirst());
+            collectCards(p2, p1);
         }
     }
 
-    public String playRecursiveRound(LinkedList<Integer> p1, LinkedList<Integer> p2, Map<String,
-            List<LinkedList<Integer>>> previousRounds) {
-//        System.out.println("p1 deck: " + p1);
-//        System.out.println("p2 deck: " + p2);
+    public Player playRecursiveCombat(LinkedList<Integer> p1, LinkedList<Integer> p2, Set<LinkedList<Integer>> playedGames) {
+        /* RULES OF RECURSIVE COMBAT:
+         *      1. If a particular configuration was seen before in the game, the game instantly ends in a win for
+         *         player 1 (prevents infinite games).
+         *      2. Otherwise, both players draw their top card, and if either player's number is higher than the amount
+         *         of cards in their hand, the player with the higher-valued card wins the round.
+         *      3. If both players have at least as many cards remaining in their deck as the value of the card they
+         *         just drew, the winner of the round is determined by playing a sub-game.
+         *      4. The sub-game is played with a copy of the the player's deck (the quantity of cards copied is equal
+         *         to the number on the card they drew to trigger the sub-game).
+         */
 
-        if (p1.size() == 0 || p2.size() == 0) {
-            return !(p1.size() == 0) ? "p1" : "p2";
+        if (p1.isEmpty()|| p2.isEmpty()) {
+            return p1.size() > 0 ? Player.P1 : Player.P2;
         }
-        if (previousRounds.get("p1").contains(p1) && previousRounds.get("p2").contains(p2)) {
-            System.out.println(p1);
-            System.out.println(p2);
-            System.out.println(previousRounds);
-            return "p1";
-        }
-        List<LinkedList<Integer>> p1Prev = previousRounds.get("p1");
-        p1Prev.add(new LinkedList<>(p1));
-        List<LinkedList<Integer>> p2Prev = previousRounds.get("p2");
-        p2Prev.add(new LinkedList<>(p2));
-        previousRounds.put("p1", p1Prev);
-        previousRounds.put("p2", p2Prev);
 
-        if (p1.getFirst() <= p1.size() - 1 && p2.getFirst() <= p2.size() - 1) {
-            System.out.println("going into mini game...");
-            // Each game begins with its own empty set of hands it's seen.
-            Map<String, List<LinkedList<Integer>>> history = new HashMap<>();
-            history.put("p1", new ArrayList<>());
-            history.put("p2", new ArrayList<>());
-            playMiniRecursiveRound(p1, p2, history);
+        if (playedGames.contains(p1)) {
+            return Player.P1;
+        }
+
+        playedGames.add(new LinkedList<>(p1));
+
+        if (p1.getFirst() < p1.size() && p2.getFirst() < p2.size()) {
+            // System.out.println("going into mini game...");
+            // each game begins with its own empty set of hands it's seen
+            playSubGame(p1, p2, new HashSet<>());
         } else {
-
-            if (p1.getFirst() > p2.getFirst()) {
-                p1.add(p1.removeFirst());
-                p1.add(p2.removeFirst());
-            } else {
-                p2.add(p2.removeFirst());
-                p2.add(p1.removeFirst());
-            }
+            playRound(p1, p2);
         }
 
-        return playRecursiveRound(p1, p2, previousRounds);
+        return playRecursiveCombat(p1, p2, playedGames);
     }
 
-    public void playMiniRecursiveRound(LinkedList<Integer> p1, LinkedList<Integer> p2, Map<String,
-            List<LinkedList<Integer>>> previousRounds) {
-        List<Integer> p1subList = p1.subList(1, p1.get(0)+1);
-        List<Integer> p2subList = p2.subList(1, p2.get(0)+1);
-        LinkedList<Integer> p1Copy = new LinkedList<>(p1subList);
-        LinkedList<Integer> p2Copy = new LinkedList<>(p2subList);
+    public void playSubGame(LinkedList<Integer> p1, LinkedList<Integer> p2, Set<LinkedList<Integer>> playedGames) {
+        LinkedList<Integer> p1Copy = new LinkedList<>(p1.subList(1, p1.get(0) + 1));
+        LinkedList<Integer> p2Copy = new LinkedList<>(p2.subList(1, p2.get(0) + 1));
 
-        String winner = playRecursiveRound(p1Copy, p2Copy, previousRounds);
-        if (winner.equals("p1")) {
-            System.out.println("p1 wins the sub-game");
-            p1.add(p1.removeFirst());
-            p1.add(p2.removeFirst());
+        Player winner = playRecursiveCombat(p1Copy, p2Copy, playedGames);
+        if (winner == Player.P1) {
+            collectCards(p1, p2);
         } else {
-            System.out.println("p2 wins the sub-game");
-            p2.add(p2.removeFirst());
-            p2.add(p1.removeFirst());
+            collectCards(p2, p1);
         }
+    }
+
+    public void collectCards(LinkedList<Integer> winner, LinkedList<Integer> loser) {
+        winner.add(winner.removeFirst());
+        winner.add(loser.removeFirst());
+    }
+
+    public long calculateScore(LinkedList<Integer> deck) {
+        long score = 0;
+        int totalCards = deck.size();
+        for (int i = 1; i <= totalCards; i++) {
+            score += i * deck.removeLast();
+        }
+        return score;
     }
 
     public static void main(String[] args) {
